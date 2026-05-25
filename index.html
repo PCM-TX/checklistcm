@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5f43">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Checklist Padrão Brasil - Máquinas Florestais</title>
+<style>
+:root {
+  --green:#0f5f43; --green2:#083d2b; --soft:#eaf5ef; --bg:#f4f7f9; --card:#fff;
+  --text:#17212b; --muted:#667485; --line:#d8e1e8; --ok:#1f8a4c; --nc:#c0392b; --na:#7f8c8d;
+  --shadow:0 14px 35px rgba(18,38,63,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#e8f4ef 0,#f4f7f9 280px);color:var(--text);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--green),var(--green2));color:white;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+.header{max-width:1380px;margin:auto;padding:20px;display:grid;grid-template-columns:1.3fr auto;gap:18px;align-items:center}
+h1{margin:0;font-size:1.45rem} .sub{margin-top:6px;color:#d9eee5;font-size:.92rem}
+.actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+button{border:0;border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer;transition:.15s;font-size:.9rem}
+button:hover{transform:translateY(-1px)} button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-light{background:white;color:var(--green2)} .btn-brand{background:var(--green);color:white} .btn-soft{background:#eef3f6;color:#26313c}
+.btn-danger{background:#fdeceb;color:#a93226} .btn-ok{background:#e4f6ec;color:var(--ok)} .btn-nc{background:#fdeceb;color:var(--nc)} .btn-na{background:#eef1f4;color:var(--na)}
+main{max-width:1380px;margin:18px auto 60px;padding:0 16px}
+.panel{background:white;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.meta{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+label{display:block;font-weight:900;font-size:.8rem;color:#3c4b59;margin-bottom:6px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 11px;font:inherit;background:white;color:var(--text)}
+textarea{min-height:72px;resize:vertical}
+.summary{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-top:14px}
+.progress{height:13px;background:#e1e9ef;border-radius:99px;overflow:hidden} .bar{height:100%;background:linear-gradient(90deg,#20a96b,#0f5f43);width:0}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
+.kpi{border:1px solid var(--line);border-radius:15px;padding:12px;background:#fbfcfd} .kpi b{display:block;font-size:1.3rem;margin-top:4px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;margin-bottom:10px}
+.tab{white-space:nowrap;border:1px solid var(--line);background:white;color:#41505f;border-radius:999px;padding:10px 14px}
+.tab.active{background:var(--green);color:white;border-color:var(--green)} .tab.done::after{content:" ✓"}
+.comp{display:none} .comp.active{display:block}
+.comp-head{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.comp-head h2{margin:0 0 5px} .comp-head p{margin:0;color:var(--muted)}
+.comp-score{background:var(--soft);color:var(--green2);border-radius:14px;padding:10px 13px;font-weight:900}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.item{display:grid;grid-template-columns:1fr auto;gap:12px;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0;background:#fff}
+.item-title{font-weight:700;line-height:1.35}
+.status{display:flex;gap:6px;align-items:flex-start}
+.pill{min-width:42px;background:#f7f9fb;border:1px solid var(--line);color:#354454;padding:8px 9px;border-radius:10px}
+.pill.sel.C{background:#e3f6eb;color:var(--ok);border-color:#a6dcb9}
+.pill.sel.NC{background:#fdeceb;color:var(--nc);border-color:#efaaa3}
+.pill.sel.NA{background:#eef1f4;color:var(--na);border-color:#c8d0d7}
+.detail{display:none;grid-column:1/-1;border-top:1px solid var(--line);padding-top:10px;grid-template-columns:1fr .7fr;gap:10px;background:#fbfcfd;margin:0 -12px -12px;padding:12px;border-radius:0 0 16px 16px}
+.detail.show{display:grid}
+.photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.photo-preview img{width:98px;height:72px;object-fit:cover;border:1px solid var(--line);border-radius:10px}
+.comp-extra{display:grid;grid-template-columns:1fr .75fr;gap:12px;background:#fbfcfd;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:14px}
+.photo-box{border:1px dashed #a8b6c2;border-radius:14px;background:white;padding:10px}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:14px}
+.report{display:none}
+.report.print-prep{
+  display:block;
+  position:fixed;
+  left:0;
+  top:0;
+  width:210mm;
+  max-width:210mm;
+  background:white;
+  opacity:0.01;
+  pointer-events:none;
+  z-index:-1;
+}
+.report-cover{background:linear-gradient(135deg,#0f5f43,#083d2b);color:white;padding:26px;border-radius:20px;margin-bottom:16px}
+.report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.report-chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:13px;padding:10px}
+.report-comp{background:white;border:1px solid #cfd8df;border-radius:17px;padding:14px;margin:14px 0;break-inside:avoid}
+.report-comp h3{margin:0 0 6px;display:flex;justify-content:space-between;gap:10px}
+.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.76rem;font-weight:900}
+.badge.C{background:#e4f6ec;color:var(--ok)} .badge.NC{background:#fdeceb;color:var(--nc)} .badge.NA{background:#eef1f4;color:var(--na)} .badge.PEND{background:#fff3cd;color:#8a6400}
+.tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:.84rem} .tbl th,.tbl td{border:1px solid #dce4ea;padding:7px;vertical-align:top} .tbl th{background:#eef5f1;text-align:left}
+.report-imgs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px} .report-imgs img{width:150px;max-height:115px;object-fit:cover;border:1px solid #d5dee5;border-radius:10px}
+.small{font-size:.84rem;color:var(--muted)} .hide{display:none!important}
+
+.measurement-item{border-left:5px solid #0f5f43}
+.med-tag{display:inline-block;margin-left:8px;background:#eaf5ef;color:#0f5f43;border:1px solid #b8dfce;border-radius:999px;padding:2px 7px;font-size:.7rem;font-weight:900}
+.measurement-box{display:grid;grid-template-columns:120px 90px 1fr;gap:8px;margin-top:9px}
+.measurement-box input{padding:8px 9px}
+.ref{margin-top:4px}
+
+
+.report-summary{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:14px;
+  margin:14px 0;
+}
+.summary-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.9rem}
+.summary-table th,.summary-table td{border:1px solid #dce4ea;padding:8px;vertical-align:top}
+.summary-table th{background:#eef5f1;text-align:left}
+.page-footer{margin-top:12px;border-top:1px solid #cfd8df;padding-top:8px;display:flex;justify-content:space-between;color:#667485;font-size:.82rem}
+
+
+.mobile-category{
+  display:none;
+  background:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:10px;
+  margin:0 0 10px 0;
+  box-shadow:var(--shadow);
+}
+.mobile-bottom{
+  display:none;
+}
+@media(max-width:900px){
+  body{
+    padding-bottom:82px;
+    background:#f4f7f9;
+  }
+  header{
+    position:static;
+  }
+  .header{
+    grid-template-columns:1fr;
+    padding:14px 12px;
+  }
+  h1{
+    font-size:1.08rem;
+  }
+  .sub{
+    font-size:.78rem;
+    line-height:1.35;
+  }
+  .actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .actions button{
+    width:100%;
+    min-height:42px;
+  }
+  main{
+    margin:10px auto 90px;
+    padding:0 10px;
+  }
+  .panel{
+    border-radius:16px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .meta{
+    grid-template-columns:1fr !important;
+    gap:9px;
+  }
+  input,select,textarea{
+    font-size:16px;
+    padding:12px;
+    border-radius:12px;
+  }
+  label{
+    font-size:.78rem;
+  }
+  .summary{
+    grid-template-columns:1fr auto;
+    margin-top:10px;
+  }
+  .kpis{
+    grid-template-columns:repeat(2,1fr) !important;
+    gap:8px;
+  }
+  .kpi{
+    padding:10px;
+    border-radius:13px;
+    font-size:.82rem;
+  }
+  .kpi b{
+    font-size:1.05rem;
+  }
+  .tabs{
+    display:none;
+  }
+  .mobile-category{
+    display:block;
+    position:sticky;
+    top:0;
+    z-index:25;
+  }
+  .comp-head{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .comp-head h2{
+    font-size:1.08rem;
+    line-height:1.25;
+  }
+  .comp-head p{
+    font-size:.84rem;
+  }
+  .comp-score{
+    width:max-content;
+    font-size:.86rem;
+    padding:8px 10px;
+  }
+  .toolbar{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .toolbar button{
+    width:100%;
+    min-height:42px;
+  }
+  .item{
+    grid-template-columns:1fr !important;
+    gap:8px;
+    padding:11px;
+    border-radius:14px;
+    margin:8px 0;
+  }
+  .item-title{
+    font-size:.94rem;
+  }
+  .status{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+  }
+  .pill{
+    width:100%;
+    min-height:42px;
+    font-size:.92rem;
+  }
+  .detail{
+    grid-template-columns:1fr !important;
+    margin:0 -11px -11px;
+    padding:11px;
+  }
+  .measurement-box{
+    grid-template-columns:1fr !important;
+  }
+  .comp-extra{
+    grid-template-columns:1fr !important;
+    padding:11px;
+    border-radius:14px;
+  }
+  .photo-preview img{
+    width:112px;
+    height:84px;
+  }
+  .nav{
+    display:none;
+  }
+  .mobile-bottom{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    padding:10px max(10px, env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-right));
+    background:rgba(255,255,255,.96);
+    border-top:1px solid var(--line);
+    box-shadow:0 -8px 26px rgba(0,0,0,.12);
+    z-index:50;
+  }
+  .mobile-bottom button{
+    min-height:44px;
+    border-radius:12px;
+  }
+}
+@media(min-width:901px){
+  .mobile-bottom{
+    display:none !important;
+  }
+}
+
+@media(max-width:900px){.header,.meta,.comp-extra,.detail,.measurement-box{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.item{grid-template-columns:1fr}.status{justify-content:flex-start}}
+@media print{
+  @page{size:A4 portrait;margin:9mm}
+  html,body{
+    width:210mm;
+    min-height:297mm;
+    background:white!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  header,.app,.tabs,.comp,.no-print{display:none!important}
+  main{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .report,
+  .report.print-prep{
+    display:block!important;
+    position:static!important;
+    left:auto!important;
+    top:auto!important;
+    width:100%!important;
+    max-width:none!important;
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    z-index:auto!important;
+    background:white!important;
+  }
+  .report-cover{
+    border-radius:0!important;
+    margin:0 0 7mm 0!important;
+    padding:9mm!important;
+    break-after:avoid;
+    page-break-after:avoid;
+  }
+  .report-grid{
+    grid-template-columns:repeat(4,1fr)!important;
+    gap:4mm!important;
+  }
+  .report-chip{
+    padding:3mm!important;
+    font-size:9pt!important;
+  }
+  .report-comp{
+    page-break-before:always!important;
+    break-before:page!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    min-height:280mm!important;
+    box-shadow:none!important;
+    border:1px solid #bfcbd3!important;
+    border-radius:5mm!important;
+    padding:4mm!important;
+    margin:0 0 6mm 0!important;
+    break-inside:auto!important;
+    page-break-inside:auto!important;
+  }
+  .report-comp h3{
+    font-size:13pt!important;
+    margin-bottom:2mm!important;
+  }
+  .small{
+    font-size:8.5pt!important;
+  }
+  .tbl{
+    width:100%!important;
+    table-layout:fixed!important;
+    border-collapse:collapse!important;
+    font-size:7.8pt!important;
+  }
+  .tbl th,.tbl td{
+    padding:2mm!important;
+    vertical-align:top!important;
+    word-break:break-word!important;
+    overflow-wrap:anywhere!important;
+  }
+  .tbl th:nth-child(1),.tbl td:nth-child(1){width:44%!important}
+  .tbl th:nth-child(2),.tbl td:nth-child(2){width:13%!important;text-align:center!important}
+  .tbl th:nth-child(3),.tbl td:nth-child(3){width:43%!important}
+  .badge{
+    font-size:7pt!important;
+    padding:1.2mm 2.2mm!important;
+  }
+  .report-imgs{
+    display:block!important;
+    margin-top:2mm!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  .report-imgs div{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  .report-imgs img{
+    width:42mm!important;
+    max-width:42mm!important;
+    max-height:32mm!important;
+    object-fit:contain!important;
+    display:block!important;
+    border:1px solid #aeb9c2!important;
+    border-radius:3mm!important;
+    margin-top:1mm!important;
+  }
+  .nc-photo{
+    padding:2mm!important;
+    border:1px solid #efc0bb!important;
+    border-radius:3mm!important;
+    background:#fff7f6!important;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="header">
+    <div>
+      <h1>Checklist Padrão Brasil - Máquinas Florestais</h1>
+      <div class="sub">Modelo técnico detalhado · Forwarder / Harvester · Itens com medição · PDF A4 retrato com fotos das NC</div>
+    </div>
+    <div class="actions">
+      <button class="btn-light" onclick="save(true)">Salvar</button>
+      <button class="btn-light" onclick="printPDF()">Gerar PDF</button>
+      <button class="btn-light" onclick="exportCSV()">CSV</button>
+      <button class="btn-light" onclick="exportJSON()">JSON</button>
+      <button class="btn-light" onclick="resetAll()">Limpar</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="panel app">
+    <div class="meta">
+      <div><label>Equipamento</label><select id="equipment" onchange="rerender()"><option>Forwarder</option><option>Harvester</option></select></div>
+      <div><label>TAG / Frota</label><input id="tag" placeholder="Ex.: FW-001 / HV-001"></div>
+      <div><label>Fabricante / Modelo</label><select id="model"><option value="">Selecione</option><option>Komatsu</option><option>John Deere</option></select></div>
+      <div><label>Horímetro</label><input id="hourmeter" placeholder="Ex.: 12.350 h"></div>
+      <div><label>Data</label><input id="date" type="date"></div>
+      <div><label>Inspetor</label><input id="inspector" placeholder="Nome"></div>
+      <div><label>Frente</label><select id="location"><option value="">Selecione</option><option>M01</option><option>M02</option><option>M03</option><option>M04</option><option>M05</option><option>M06</option><option>M07</option><option>M09</option><option>M10</option></select></div>
+      <div><label>Tipo de inspeção</label><select id="inspectionType"><option>Pré-operacional</option><option>Preventiva</option><option>Corretiva</option><option>Auditoria</option><option>Entrega técnica</option></select></div>
+      <div><label>Criticidade final</label><select id="criticality"><option>A definir</option><option>Baixa</option><option>Média</option><option>Alta</option><option>Crítica</option></select></div>
+      <div><label>Condição final</label><select id="finalCondition"><option>A definir</option><option>Liberado</option><option>Liberado com restrição</option><option>Bloqueado para manutenção</option></select></div>
+    </div>
+    <div class="summary">
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <b id="pct">0%</b>
+    </div>
+    <div class="kpis">
+      <div class="kpi">Avaliados<b id="kDone">0</b></div>
+      <div class="kpi">Conformes<b id="kC">0</b></div>
+      <div class="kpi">Não conformes<b id="kNC">0</b></div>
+      <div class="kpi">Não aplicáveis<b id="kNA">0</b></div>
+      <div class="kpi">Pendentes<b id="kP">0</b></div>
+    </div>
+  </section>
+
+  <div class="mobile-category no-print"><label>Categoria</label><select id="mobileCategory" onchange="goMobileCategory(this.value)"></select></div>
+  <nav class="tabs no-print" id="tabs"></nav>
+  <section id="components"></section>
+  <section id="report" class="report"></section>
+</main>
+
+<div class="mobile-bottom no-print">
+  <button class="btn-soft" onclick="prev()">Voltar</button>
+  <button class="btn-brand" onclick="next()">Avançar</button>
+  <button class="btn-light" onclick="printPDF()">PDF</button>
+</div>
+
+<script>
+const CHECKLIST = [{"id": "identificacao", "title": "Identificação do Ativo e Dados da Inspeção", "desc": "Dados essenciais para rastreabilidade da inspeção, operação e manutenção.", "items": [{"text": "TAG / número de frota identificado e legível", "type": "check"}, {"text": "Modelo e fabricante identificados", "type": "check"}, {"text": "Número de série / plaqueta patrimonial identificável", "type": "check"}, {"text": "Horímetro registrado e coerente", "type": "check"}, {"text": "Local / frente / fazenda informado", "type": "check"}, {"text": "Nome do operador informado", "type": "check"}, {"text": "Nome do inspetor informado", "type": "check"}, {"text": "Turno da inspeção informado", "type": "check"}, {"text": "Condição geral inicial registrada", "type": "check"}, {"text": "Última OS / pendência crítica conhecida registrada", "type": "check"}, {"text": "Checklist anterior consultado quando disponível", "type": "check"}, {"text": "Máquina posicionada em local seguro para inspeção", "type": "check"}]}, {"id": "seguranca", "title": "Segurança Operacional", "desc": "Itens de segurança, acesso, sinalização, bloqueio e integridade para operação segura.", "items": [{"text": "Cinto de segurança íntegro e funcional", "type": "check"}, {"text": "Alarme de ré funcionando", "type": "check"}, {"text": "Buzina funcionando", "type": "check"}, {"text": "Giroflex / sinalizador funcionando", "type": "check"}, {"text": "Faróis de trabalho funcionando", "type": "check"}, {"text": "Luzes de posição e lanternas funcionando", "type": "check"}, {"text": "Espelhos, câmeras ou monitores de visibilidade funcionando", "type": "check"}, {"text": "Escadas e degraus firmes", "type": "check"}, {"text": "Corrimãos e pontos de apoio firmes", "type": "check"}, {"text": "Piso antiderrapante em condição segura", "type": "check"}, {"text": "Saída de emergência acessível", "type": "check"}, {"text": "Martelo / dispositivo de emergência presente quando aplicável", "type": "check"}, {"text": "Adesivos e alertas de segurança legíveis", "type": "check"}, {"text": "ROPS / FOPS sem deformação, corte ou alteração estrutural", "type": "check"}, {"text": "Proteções móveis, tampas e grades instaladas", "type": "check"}, {"text": "Sem objetos soltos na cabine", "type": "check"}, {"text": "Sem vazamento em área de acesso", "type": "check"}, {"text": "Freio de estacionamento segura a máquina", "type": "check"}, {"text": "Bloqueios e travamentos operacionais funcionando", "type": "check"}, {"text": "Extintor portátil presente e acessível quando aplicável", "type": "check"}]}, {"id": "motor", "title": "Motor, Arrefecimento, Admissão, Combustível e Escape", "desc": "Conjunto motor diesel, arrefecimento, admissão, combustível, lubrificação e escape.", "items": [{"text": "Nível de óleo do motor dentro do padrão", "type": "check"}, {"text": "Aspecto do óleo do motor sem contaminação aparente", "type": "check"}, {"text": "Filtro de óleo sem vazamento ou dano", "type": "check"}, {"text": "Cárter sem vazamento ou trinca", "type": "check"}, {"text": "Tampa de abastecimento de óleo íntegra", "type": "check"}, {"text": "Respiro do motor em condição adequada", "type": "check"}, {"text": "Coxins do motor íntegros", "type": "check"}, {"text": "Sem ruído anormal no motor", "type": "check"}, {"text": "Sem vibração excessiva no motor", "type": "check"}, {"text": "Partida do motor normal", "type": "check"}, {"text": "Marcha lenta estável", "type": "check"}, {"text": "Aceleração sem falha ou engasgo", "type": "check"}, {"text": "Sem fumaça excessiva no escape", "type": "check"}, {"text": "Coletor de escape sem vazamento aparente", "type": "check"}, {"text": "Abafador / escapamento fixo e sem dano crítico", "type": "check"}, {"text": "Proteções térmicas do escape instaladas", "type": "check"}, {"text": "Nível do líquido de arrefecimento dentro do padrão", "type": "check"}, {"text": "Reservatório de expansão íntegro", "type": "check"}, {"text": "Tampa do reservatório / radiador em condição adequada", "type": "check"}, {"text": "Radiador sem obstrução crítica", "type": "check"}, {"text": "Colmeia do radiador limpa", "type": "check"}, {"text": "Mangueiras do arrefecimento sem ressecamento ou vazamento", "type": "check"}, {"text": "Abraçadeiras do arrefecimento firmes", "type": "check"}, {"text": "Ventilador / hélice sem dano", "type": "check"}, {"text": "Correia do ventilador / alternador tensionada e sem desgaste crítico", "type": "check"}, {"text": "Polias sem ruído ou folga aparente", "type": "check"}, {"text": "Intercooler limpo e sem avaria", "type": "check"}, {"text": "Filtro de ar primário em condição adequada", "type": "check"}, {"text": "Filtro de ar secundário em condição adequada", "type": "check"}, {"text": "Pré-filtro / ciclone limpo", "type": "check"}, {"text": "Dutos de admissão sem entrada falsa de ar", "type": "check"}, {"text": "Abraçadeiras da admissão firmes", "type": "check"}, {"text": "Indicador de restrição do filtro de ar em condição normal", "type": "check"}, {"text": "Tanque de combustível sem vazamento", "type": "check"}, {"text": "Tampa do tanque de combustível íntegra", "type": "check"}, {"text": "Linhas de combustível sem vazamento", "type": "check"}, {"text": "Filtro separador de água drenado / em condição adequada", "type": "check"}, {"text": "Filtro de combustível sem vazamento", "type": "check"}, {"text": "Bomba de combustível sem ruído ou vazamento", "type": "check"}, {"text": "Sem cheiro forte de diesel ou óleo queimado", "type": "check"}, {"text": "Temperatura do motor em operação", "type": "measurement", "unit": "°C", "limit": "Conforme faixa operacional do fabricante"}, {"text": "Tensão / condição da correia do ventilador ou alternador", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante"}]}, {"id": "dafo", "title": "Sistema DAFO / Detecção e Combate a Incêndio", "desc": "Sistema fixo de detecção e combate, acionamento, módulo, painel, mangueiras e reservatórios.", "items": [{"text": "Detonador em condição adequada", "type": "check"}, {"text": "Cabo de detecção íntegro", "type": "check"}, {"text": "Cabo de detecção corretamente roteado e fixado", "type": "check"}, {"text": "Acionador manual acessível", "type": "check"}, {"text": "Acionador manual identificado", "type": "check"}, {"text": "Módulo do sistema DAFO energizado", "type": "check"}, {"text": "Módulo sem alarme de falha", "type": "check"}, {"text": "Painel de acionamento funcionando", "type": "check"}, {"text": "Verificação do painel com reset executada", "type": "check"}, {"text": "Botão de teste do painel funcionando quando aplicável", "type": "check"}, {"text": "Garras com nitrogênio em condição adequada", "type": "check"}, {"text": "Pressão das garras / cilindros dentro do padrão visual", "type": "check"}, {"text": "Reservatório com líquido Forex no nível adequado", "type": "check"}, {"text": "Reservatório de líquido Forex sem vazamento", "type": "check"}, {"text": "Mangueiras do DAFO sem ressecamento", "type": "check"}, {"text": "Mangueiras do DAFO sem dobra, corte ou esmagamento", "type": "check"}, {"text": "Conexões e terminais do DAFO firmes", "type": "check"}, {"text": "Bicos difusores presentes", "type": "check"}, {"text": "Bicos difusores limpos e desobstruídos", "type": "check"}, {"text": "Bicos direcionados para áreas críticas", "type": "check"}, {"text": "Tubulações protegidas contra atrito", "type": "check"}, {"text": "Lacres e travas preservados", "type": "check"}, {"text": "Identificação e instruções de acionamento legíveis", "type": "check"}, {"text": "Central protegida contra água, lama e impacto", "type": "check"}, {"text": "Sensores térmicos / lineares preservados", "type": "check"}, {"text": "Chicote elétrico do DAFO sem dano", "type": "check"}, {"text": "Sem componentes isolados ou bypass irregular", "type": "check"}, {"text": "Data de validade / inspeção do sistema dentro do padrão", "type": "check"}, {"text": "Extintor portátil complementar presente", "type": "check"}, {"text": "Extintor portátil com carga e validade adequadas", "type": "check"}, {"text": "Pressão medida das garrafas / garras com nitrogênio", "type": "measurement", "unit": "kPa", "limit": "Conforme faixa operacional do fabricante", "ref": "Manual HVE567: medição registrada 130 kPa"}, {"text": "Capacidade / volume da garrafa instalada", "type": "measurement", "unit": "L", "limit": "Compatível com especificação do sistema"}, {"text": "Quantidade / carga da botija AFEX ou equivalente", "type": "measurement", "unit": "kg", "limit": "Compatível com especificação do sistema"}]}, {"id": "rodante_harvester", "title": "Material Rodante - Harvester com Esteira", "desc": "Componentes de esteira, roletes, rodas, sapatas, guias, links, buchas e fixações.", "equipment": "Harvester", "items": [{"text": "Roletes inferiores lado esquerdo sem vazamento, folga ou quebra", "type": "check"}, {"text": "Roletes inferiores lado direito sem vazamento, folga ou quebra", "type": "check"}, {"text": "Roletes superiores lado esquerdo sem vazamento, folga ou quebra", "type": "check"}, {"text": "Roletes superiores lado direito sem vazamento, folga ou quebra", "type": "check"}, {"text": "Roda guia esquerda sem desgaste crítico", "type": "check"}, {"text": "Roda guia direita sem desgaste crítico", "type": "check"}, {"text": "Roda motriz esquerda sem desgaste crítico", "type": "check"}, {"text": "Roda motriz direita sem desgaste crítico", "type": "check"}, {"text": "Guia da esteira esquerda íntegra", "type": "check"}, {"text": "Guia da esteira direita íntegra", "type": "check"}, {"text": "Sapatas da esteira esquerda sem quebra ou desgaste crítico", "type": "check"}, {"text": "Sapatas da esteira direita sem quebra ou desgaste crítico", "type": "check"}, {"text": "Parafusos de fixação das sapatas lado esquerdo presentes e apertados", "type": "check"}, {"text": "Parafusos de fixação das sapatas lado direito presentes e apertados", "type": "check"}, {"text": "Parafusos de fixação dos roletes lado esquerdo presentes", "type": "check"}, {"text": "Parafusos de fixação dos roletes lado direito presentes", "type": "check"}, {"text": "Parafusos de fixação da roda motriz esquerda presentes", "type": "check"}, {"text": "Parafusos de fixação da roda motriz direita presentes", "type": "check"}, {"text": "Links e buchas lado esquerdo sem desgaste crítico", "type": "check"}, {"text": "Links e buchas lado direito sem desgaste crítico", "type": "check"}, {"text": "Tensionamento da esteira esquerda adequado", "type": "check"}, {"text": "Tensionamento da esteira direita adequado", "type": "check"}, {"text": "Sem desalinhamento aparente da esteira esquerda", "type": "check"}, {"text": "Sem desalinhamento aparente da esteira direita", "type": "check"}, {"text": "Sem trincas no chassi inferior lado esquerdo", "type": "check"}, {"text": "Sem trincas no chassi inferior lado direito", "type": "check"}, {"text": "Raspadores / limpadores de esteira presentes", "type": "check"}, {"text": "Proteções inferiores instaladas", "type": "check"}, {"text": "Sem acúmulo crítico de lama, madeira ou pedra no conjunto", "type": "check"}, {"text": "Motores de translação sem vazamento", "type": "check"}, {"text": "Redutores finais sem vazamento", "type": "check"}, {"text": "Mangueiras de translação protegidas", "type": "check"}, {"text": "Freio de translação respondendo adequadamente", "type": "check"}, {"text": "Deslocamento sem trancos, ruídos ou vibração anormal", "type": "check"}]}, {"id": "rodante_forwarder", "title": "Material Rodante - Forwarder", "desc": "Pneus, bogie, eixos, cubos, correntes, tração, articulação e freios.", "equipment": "Forwarder", "items": [{"text": "Pneu dianteiro esquerdo sem corte, bolha ou desgaste crítico", "type": "check"}, {"text": "Pneu dianteiro direito sem corte, bolha ou desgaste crítico", "type": "check"}, {"text": "Pneu traseiro esquerdo sem corte, bolha ou desgaste crítico", "type": "check"}, {"text": "Pneu traseiro direito sem corte, bolha ou desgaste crítico", "type": "check"}, {"text": "Pneus intermediários / bogie esquerdo em condição adequada", "type": "check"}, {"text": "Pneus intermediários / bogie direito em condição adequada", "type": "check"}, {"text": "Calibragem visual dos pneus adequada", "type": "check"}, {"text": "Correntes / tracks dos pneus lado esquerdo em condição adequada quando aplicável", "type": "check"}, {"text": "Correntes / tracks dos pneus lado direito em condição adequada quando aplicável", "type": "check"}, {"text": "Porcas e parafusos das rodas presentes e apertados", "type": "check"}, {"text": "Cubos de roda sem vazamento", "type": "check"}, {"text": "Redutores finais sem vazamento", "type": "check"}, {"text": "Bogie esquerdo sem trinca, vazamento ou folga crítica", "type": "check"}, {"text": "Bogie direito sem trinca, vazamento ou folga crítica", "type": "check"}, {"text": "Eixo dianteiro sem vazamento ou ruído", "type": "check"}, {"text": "Eixo traseiro sem vazamento ou ruído", "type": "check"}, {"text": "Cardans e cruzetas sem folga crítica", "type": "check"}, {"text": "Diferenciais sem vazamento", "type": "check"}, {"text": "Articulação central sem folga crítica", "type": "check"}, {"text": "Pinos e buchas da articulação lubrificados", "type": "check"}, {"text": "Cilindros de direção sem vazamento", "type": "check"}, {"text": "Mangueiras da direção protegidas", "type": "check"}, {"text": "Direção sem tranco, folga ou lentidão", "type": "check"}, {"text": "Freio de serviço funcional", "type": "check"}, {"text": "Freio de estacionamento funcional", "type": "check"}, {"text": "Sem ruído anormal durante deslocamento", "type": "check"}, {"text": "Sem vibração anormal durante deslocamento", "type": "check"}, {"text": "Proteções inferiores instaladas", "type": "check"}, {"text": "Sem acúmulo crítico de lama, galhos ou resíduos no conjunto", "type": "check"}]}, {"id": "hidraulico", "title": "Sistema Hidráulico", "desc": "Reservatório, bombas, filtros, mangueiras, válvulas, cilindros, acumuladores e resposta operacional.", "items": [{"text": "Nível do óleo hidráulico dentro do padrão", "type": "check"}, {"text": "Aspecto do óleo hidráulico sem contaminação aparente", "type": "check"}, {"text": "Reservatório hidráulico sem vazamento", "type": "check"}, {"text": "Tampa do reservatório hidráulico íntegra", "type": "check"}, {"text": "Visor de nível limpo e legível", "type": "check"}, {"text": "Respiro do reservatório em condição adequada", "type": "check"}, {"text": "Filtro hidráulico sem vazamento", "type": "check"}, {"text": "Indicador de saturação do filtro hidráulico normal", "type": "check"}, {"text": "Bomba hidráulica principal sem vazamento", "type": "check"}, {"text": "Bomba hidráulica sem ruído de cavitação", "type": "check"}, {"text": "Motores hidráulicos sem vazamento", "type": "check"}, {"text": "Bloco de válvulas sem vazamento", "type": "check"}, {"text": "Válvulas de comando sem tranco ou travamento", "type": "check"}, {"text": "Acumuladores hidráulicos em condição adequada quando aplicável", "type": "check"}, {"text": "Mangueiras hidráulicas sem ressecamento", "type": "check"}, {"text": "Mangueiras hidráulicas sem atrito com estrutura", "type": "check"}, {"text": "Mangueiras hidráulicas sem esmagamento ou dobra", "type": "check"}, {"text": "Terminais hidráulicos sem vazamento", "type": "check"}, {"text": "Abraçadeiras e suportes de mangueiras firmes", "type": "check"}, {"text": "Tubulações rígidas sem trinca ou amassamento", "type": "check"}, {"text": "Cilindros hidráulicos sem vazamento na haste", "type": "check"}, {"text": "Hastes dos cilindros sem riscos ou corrosão", "type": "check"}, {"text": "Olhais dos cilindros sem folga crítica", "type": "check"}, {"text": "Pinos e buchas dos cilindros preservados", "type": "check"}, {"text": "Movimentos hidráulicos sem lentidão anormal", "type": "check"}, {"text": "Movimentos hidráulicos sem trancos", "type": "check"}, {"text": "Pressão / força aparente dentro do esperado", "type": "check"}, {"text": "Sem aquecimento excessivo do sistema hidráulico", "type": "check"}, {"text": "Radiador de óleo hidráulico limpo", "type": "check"}, {"text": "Ventilador hidráulico funcionando quando aplicável", "type": "check"}, {"text": "Sem alarmes hidráulicos ativos", "type": "check"}, {"text": "Sistema livre de improvisos ou bypass irregular", "type": "check"}, {"text": "Pressão hidráulica principal medida", "type": "measurement", "unit": "bar", "limit": "Conforme manual do fabricante"}, {"text": "Temperatura do óleo hidráulico em operação", "type": "measurement", "unit": "°C", "limit": "Conforme faixa operacional do fabricante"}]}, {"id": "eletrico", "title": "Sistema Elétrico, Eletrônico e Automação", "desc": "Baterias, alternador, partida, chicotes, sensores, módulos, painel, iluminação, câmeras e telemetria.", "items": [{"text": "Bateria fixa no suporte", "type": "check"}, {"text": "Bateria sem vazamento ou estufamento", "type": "check"}, {"text": "Terminais da bateria limpos e apertados", "type": "check"}, {"text": "Cabos da bateria sem isolamento danificado", "type": "check"}, {"text": "Chave geral funcionando", "type": "check"}, {"text": "Motor de partida funcionando normalmente", "type": "check"}, {"text": "Alternador carregando sem alarme", "type": "check"}, {"text": "Correia do alternador em condição adequada", "type": "check"}, {"text": "Fusíveis e relés identificados e protegidos", "type": "check"}, {"text": "Caixa elétrica limpa e vedada", "type": "check"}, {"text": "Chicotes principais fixos e protegidos", "type": "check"}, {"text": "Chicotes sem cortes, emendas expostas ou fios soltos", "type": "check"}, {"text": "Conectores travados e sem oxidação", "type": "check"}, {"text": "Sensores do motor sem dano aparente", "type": "check"}, {"text": "Sensores hidráulicos sem dano aparente", "type": "check"}, {"text": "Sensores do implemento sem dano aparente", "type": "check"}, {"text": "Painel principal liga normalmente", "type": "check"}, {"text": "Tela / display sem falha de imagem", "type": "check"}, {"text": "Sem alarmes críticos ativos", "type": "check"}, {"text": "Horímetro / sistema de horas funcionando", "type": "check"}, {"text": "Joystick esquerdo respondendo corretamente", "type": "check"}, {"text": "Joystick direito respondendo corretamente", "type": "check"}, {"text": "Botões e seletores respondendo corretamente", "type": "check"}, {"text": "Sistema de telemetria / modem instalado quando aplicável", "type": "check"}, {"text": "Antenas e cabos de comunicação preservados", "type": "check"}, {"text": "Câmera de ré funcionando quando aplicável", "type": "check"}, {"text": "Câmeras laterais / implemento funcionando quando aplicável", "type": "check"}, {"text": "Faróis dianteiros funcionando", "type": "check"}, {"text": "Faróis traseiros funcionando", "type": "check"}, {"text": "Luzes de trabalho funcionando", "type": "check"}, {"text": "Luzes de freio e ré funcionando", "type": "check"}, {"text": "Tomadas auxiliares e portas de diagnóstico preservadas", "type": "check"}, {"text": "Sem sinais de aquecimento em cabos ou módulos", "type": "check"}]}, {"id": "cabine", "title": "Cabine, Ergonomia e Conforto Operacional", "desc": "Posto do operador, comandos, vedação, climatização, visibilidade, limpeza e ergonomia.", "items": [{"text": "Porta da cabine abre, fecha e trava corretamente", "type": "check"}, {"text": "Vedação da porta em condição adequada", "type": "check"}, {"text": "Vidro dianteiro sem trinca crítica", "type": "check"}, {"text": "Vidro traseiro sem trinca crítica", "type": "check"}, {"text": "Vidros laterais sem trinca crítica", "type": "check"}, {"text": "Limpador dianteiro funcionando", "type": "check"}, {"text": "Limpador traseiro funcionando quando aplicável", "type": "check"}, {"text": "Esguicho de água funcionando", "type": "check"}, {"text": "Espelhos internos/externos ajustáveis e preservados", "type": "check"}, {"text": "Assento em condição adequada", "type": "check"}, {"text": "Suspensão do assento funcionando", "type": "check"}, {"text": "Regulagens do assento funcionando", "type": "check"}, {"text": "Apoios de braço em condição adequada", "type": "check"}, {"text": "Pedais sem folga ou travamento", "type": "check"}, {"text": "Joysticks e comandos ergonomicamente ajustados", "type": "check"}, {"text": "Ar-condicionado resfriando", "type": "check"}, {"text": "Ventilação funcionando", "type": "check"}, {"text": "Filtro de cabine limpo ou em condição aceitável", "type": "check"}, {"text": "Painéis internos fixos", "type": "check"}, {"text": "Isolamento acústico / forração sem dano crítico", "type": "check"}, {"text": "Cabine limpa e livre de resíduos", "type": "check"}, {"text": "Sem odor de combustível, óleo ou queimado", "type": "check"}, {"text": "Rádio / comunicação funcionando quando aplicável", "type": "check"}, {"text": "Carregador / tomada interna funcionando quando aplicável", "type": "check"}, {"text": "Monitor operacional fixo e legível", "type": "check"}, {"text": "Manual rápido / instruções disponíveis quando aplicável", "type": "check"}, {"text": "Folga mecânica do joystick esquerdo", "type": "measurement", "unit": "mm", "limit": "Sem folga excessiva / conforme fabricante"}, {"text": "Folga mecânica do joystick direito", "type": "measurement", "unit": "mm", "limit": "Sem folga excessiva / conforme fabricante"}]}, {"id": "estrutura", "title": "Estrutura, Chassi, Lataria e Proteções", "desc": "Integridade estrutural, soldas, trincas, carenagens, tampas, proteções e pontos de acesso.", "items": [{"text": "Chassi principal sem trinca visível", "type": "check"}, {"text": "Longarinas sem deformação crítica", "type": "check"}, {"text": "Soldas estruturais sem ruptura aparente", "type": "check"}, {"text": "Articulações estruturais sem folga crítica", "type": "check"}, {"text": "Pinos estruturais com travas presentes", "type": "check"}, {"text": "Buchas estruturais sem desgaste crítico", "type": "check"}, {"text": "Carenagens laterais instaladas", "type": "check"}, {"text": "Capôs e tampas fechando corretamente", "type": "check"}, {"text": "Travas dos capôs funcionando", "type": "check"}, {"text": "Dobradiças das tampas em condição adequada", "type": "check"}, {"text": "Proteções inferiores instaladas", "type": "check"}, {"text": "Proteções térmicas instaladas", "type": "check"}, {"text": "Proteções de mangueiras instaladas", "type": "check"}, {"text": "Grades e telas de proteção preservadas", "type": "check"}, {"text": "Para-lamas / defletores preservados quando aplicável", "type": "check"}, {"text": "Plataformas de manutenção firmes", "type": "check"}, {"text": "Pontos de içamento / ancoragem preservados", "type": "check"}, {"text": "Sem corrosão estrutural avançada", "type": "check"}, {"text": "Sem acúmulo crítico de material combustível", "type": "check"}, {"text": "Sem vazamento acumulado sobre estrutura quente", "type": "check"}, {"text": "Pintura / identificação visual preservada em pontos críticos", "type": "check"}, {"text": "Componentes sem improvisos de solda ou amarração", "type": "check"}, {"text": "Proteção do tanque de combustível íntegra", "type": "check"}, {"text": "Proteção do tanque hidráulico íntegra", "type": "check"}, {"text": "Folga dos articuladores estruturais", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante", "ref": "Manual HVE567: folga nos articuladores"}, {"text": "Folga dos pinos e buchas da articulação central", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante"}, {"text": "Folga dos pinos e buchas da lança / braço", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante"}]}, {"id": "grua", "title": "Grua, Lança, Braço e Rotação", "desc": "Conjunto de movimentação da madeira: base, coluna, lança, braço, telescópio, rotator e articulações.", "items": [{"text": "Base da grua sem trinca", "type": "check"}, {"text": "Coluna da grua sem trinca", "type": "check"}, {"text": "Rolamento / coroa de giro sem folga crítica", "type": "check"}, {"text": "Parafusos da base da grua presentes e apertados", "type": "check"}, {"text": "Motor de giro sem vazamento", "type": "check"}, {"text": "Redutor de giro sem vazamento", "type": "check"}, {"text": "Lança principal sem trinca ou deformação", "type": "check"}, {"text": "Braço secundário sem trinca ou deformação", "type": "check"}, {"text": "Telescópio sem folga crítica quando aplicável", "type": "check"}, {"text": "Guias do telescópio em condição adequada", "type": "check"}, {"text": "Pinos da lança com travas presentes", "type": "check"}, {"text": "Buchas da lança sem folga crítica", "type": "check"}, {"text": "Cilindro da lança sem vazamento", "type": "check"}, {"text": "Cilindro do braço sem vazamento", "type": "check"}, {"text": "Cilindro do telescópio sem vazamento quando aplicável", "type": "check"}, {"text": "Mangueiras da grua protegidas e sem atrito", "type": "check"}, {"text": "Mangueiras passam corretamente pelos suportes", "type": "check"}, {"text": "Limitadores e batentes preservados", "type": "check"}, {"text": "Movimento de elevação sem tranco", "type": "check"}, {"text": "Movimento de extensão sem tranco", "type": "check"}, {"text": "Movimento de giro sem ruído anormal", "type": "check"}, {"text": "Comandos da grua respondem proporcionalmente", "type": "check"}, {"text": "Sem perda aparente de força na grua", "type": "check"}, {"text": "Pontos de lubrificação da grua lubrificados", "type": "check"}, {"text": "Rolamento / coroa de giro - folga axial", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante", "ref": "Manual HVE567: medição registrada 1,20 mm"}, {"text": "Rolamento / coroa de giro - folga radial", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante", "ref": "Manual HVE567: medição de folga registrada"}, {"text": "Folga geral do conjunto de giro", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante", "ref": "Manual HVE567: folga registrada 2,25 mm"}, {"text": "Pressão de teste / retenção do conjunto da grua quando aplicável", "type": "measurement", "unit": "kPa", "limit": "Conforme manual do fabricante"}]}, {"id": "cabecote", "title": "Cabeçote Harvester", "desc": "Cabeçote de corte/processamento, alimentação, medição, serra, facas, rotator, tilt e sensores.", "equipment": "Harvester", "items": [{"text": "Estrutura do cabeçote sem trinca", "type": "check"}, {"text": "Tilt do cabeçote sem folga crítica", "type": "check"}, {"text": "Rotator do cabeçote sem vazamento", "type": "check"}, {"text": "Pinos e buchas do cabeçote sem folga crítica", "type": "check"}, {"text": "Mangueiras do cabeçote sem atrito ou vazamento", "type": "check"}, {"text": "Proteções do cabeçote instaladas", "type": "check"}, {"text": "Rolos de alimentação sem desgaste crítico", "type": "check"}, {"text": "Motores dos rolos sem vazamento", "type": "check"}, {"text": "Pressão dos rolos aparentemente adequada", "type": "check"}, {"text": "Facas móveis íntegras", "type": "check"}, {"text": "Facas fixas íntegras", "type": "check"}, {"text": "Facas com afiação / desgaste aceitável", "type": "check"}, {"text": "Cilindros das facas sem vazamento", "type": "check"}, {"text": "Sabre da serra em condição adequada", "type": "check"}, {"text": "Corrente da serra em condição adequada", "type": "check"}, {"text": "Pinhão da serra sem desgaste crítico", "type": "check"}, {"text": "Lubrificação da corrente da serra funcionando", "type": "check"}, {"text": "Tensor da corrente funcionando", "type": "check"}, {"text": "Proteção da serra instalada", "type": "check"}, {"text": "Sensor de posição da serra funcionando", "type": "check"}, {"text": "Roda de medição sem desgaste crítico", "type": "check"}, {"text": "Encoder / sensor de medição preservado", "type": "check"}, {"text": "Cabo do sensor de medição protegido", "type": "check"}, {"text": "Calibração de comprimento sem erro conhecido", "type": "check"}, {"text": "Sensor de diâmetro funcionando", "type": "check"}, {"text": "Unidade de controle do cabeçote sem alarme crítico", "type": "check"}, {"text": "Comandos do cabeçote respondem corretamente", "type": "check"}, {"text": "Processamento sem trancos ou travamentos", "type": "check"}, {"text": "Sem vazamento de óleo no conjunto do cabeçote", "type": "check"}, {"text": "Pontos de lubrificação do cabeçote atendidos", "type": "check"}, {"text": "Folga dos coxins do suporte do MHC", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante", "ref": "Manual HVE567: folga nos coxins do suporte do MHC"}, {"text": "Folga dos articuladores do cabeçote", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante"}, {"text": "Folga dos pinos e buchas do cabeçote", "type": "measurement", "unit": "mm", "limit": "Conforme manual do fabricante"}, {"text": "Pressão dos rolos de alimentação", "type": "measurement", "unit": "bar", "limit": "Conforme receita/modelo do cabeçote"}, {"text": "Comprimento calibrado / variação de medição", "type": "measurement", "unit": "mm", "limit": "Conforme tolerância operacional"}, {"text": "Diâmetro calibrado / variação de medição", "type": "measurement", "unit": "mm", "limit": "Conforme tolerância operacional"}]}, {"id": "carga_forwarder", "title": "Caixa de Carga, Garra e Implemento Forwarder", "desc": "Garra, rotator, fueiros, grade frontal, caixa de carga, assoalho e estabilidade de carregamento.", "equipment": "Forwarder", "items": [{"text": "Garra sem trinca ou deformação crítica", "type": "check"}, {"text": "Dentes / conchas da garra íntegros", "type": "check"}, {"text": "Pinos e buchas da garra sem folga crítica", "type": "check"}, {"text": "Cilindro da garra sem vazamento", "type": "check"}, {"text": "Mangueiras da garra protegidas", "type": "check"}, {"text": "Rotator da garra sem vazamento", "type": "check"}, {"text": "Rotator sem folga ou ruído anormal", "type": "check"}, {"text": "Limitadores da garra preservados", "type": "check"}, {"text": "Comando de abertura e fechamento da garra funcionando", "type": "check"}, {"text": "Comando de rotação da garra funcionando", "type": "check"}, {"text": "Fueiros lado esquerdo íntegros", "type": "check"}, {"text": "Fueiros lado direito íntegros", "type": "check"}, {"text": "Fueiros sem deformação que comprometa carga", "type": "check"}, {"text": "Grade frontal da caixa de carga íntegra", "type": "check"}, {"text": "Assoalho da caixa de carga preservado", "type": "check"}, {"text": "Batentes e travessas da caixa de carga preservados", "type": "check"}, {"text": "Pontos de solda da caixa de carga sem trinca", "type": "check"}, {"text": "Proteções da carga instaladas", "type": "check"}, {"text": "Sem interferência entre grua e caixa de carga", "type": "check"}, {"text": "Sem interferência entre mangueiras e madeira carregada", "type": "check"}, {"text": "Carga pode ser acomodada sem risco anormal", "type": "check"}, {"text": "Visibilidade da área de carga adequada", "type": "check"}, {"text": "Câmera/espelho da área de carga funcionando quando aplicável", "type": "check"}, {"text": "Pontos de lubrificação do implemento atendidos", "type": "check"}]}, {"id": "lubrificacao", "title": "Lubrificação, Fluidos, Limpeza Técnica e Prevenção de Falhas", "desc": "Pontos de graxa, níveis, filtros, limpeza técnica, contaminação e risco de incêndio.", "items": [{"text": "Plano de lubrificação conhecido ou disponível", "type": "check"}, {"text": "Pontos de graxa do chassi lubrificados", "type": "check"}, {"text": "Pontos de graxa da grua lubrificados", "type": "check"}, {"text": "Pontos de graxa do implemento lubrificados", "type": "check"}, {"text": "Engraxadeiras presentes e funcionais", "type": "check"}, {"text": "Sem engraxadeira quebrada ou obstruída", "type": "check"}, {"text": "Sem excesso de graxa em área quente", "type": "check"}, {"text": "Nível de óleo hidráulico adequado", "type": "check"}, {"text": "Nível de óleo do motor adequado", "type": "check"}, {"text": "Nível de líquido de arrefecimento adequado", "type": "check"}, {"text": "Nível de óleo de transmissão / redutor adequado quando verificável", "type": "check"}, {"text": "Nível de fluido do limpador adequado", "type": "check"}, {"text": "Filtros externos identificados e sem vazamento", "type": "check"}, {"text": "Respiros limpos e protegidos", "type": "check"}, {"text": "Radiadores limpos", "type": "check"}, {"text": "Compartimento do motor limpo", "type": "check"}, {"text": "Compartimento hidráulico limpo", "type": "check"}, {"text": "Compartimento elétrico limpo e seco", "type": "check"}, {"text": "Sem acúmulo de folhas, cascas ou serragem em áreas quentes", "type": "check"}, {"text": "Sem acúmulo de óleo/graxa que aumente risco de incêndio", "type": "check"}, {"text": "Sem contaminação visível em fluido", "type": "check"}, {"text": "Sem mangueira ou componente sem identificação crítica", "type": "check"}, {"text": "Sem peça solta ou ferramenta esquecida na máquina", "type": "check"}]}, {"id": "testes", "title": "Testes Funcionais e Critério de Liberação", "desc": "Teste final de operação, alarmes, deslocamento, implemento e decisão de liberação.", "items": [{"text": "Partida realizada sem anormalidade", "type": "check"}, {"text": "Painel sem alarme crítico após partida", "type": "check"}, {"text": "Teste de deslocamento executado", "type": "check"}, {"text": "Teste de freio de serviço executado", "type": "check"}, {"text": "Teste de freio de estacionamento executado", "type": "check"}, {"text": "Teste de direção executado", "type": "check"}, {"text": "Teste da grua executado", "type": "check"}, {"text": "Teste do implemento executado", "type": "check"}, {"text": "Teste de iluminação executado", "type": "check"}, {"text": "Teste de buzina e alarme de ré executado", "type": "check"}, {"text": "Teste do DAFO / painel verificado quando permitido", "type": "check"}, {"text": "Temperatura do motor dentro do normal durante teste", "type": "check"}, {"text": "Temperatura hidráulica sem alarme", "type": "check"}, {"text": "Sem ruído anormal durante teste", "type": "check"}, {"text": "Sem vazamento surgido após teste", "type": "check"}, {"text": "Não conformidades críticas registradas", "type": "check"}, {"text": "Condição de operação definida", "type": "check"}, {"text": "Recomendação de manutenção registrada", "type": "check"}, {"text": "Necessidade de bloqueio informada quando aplicável", "type": "check"}, {"text": "Evidências fotográficas anexadas nos componentes necessários", "type": "check"}, {"text": "Pressão registrada em teste funcional específico", "type": "measurement", "unit": "kPa", "limit": "Conforme componente testado"}, {"text": "Folga registrada em teste funcional específico", "type": "measurement", "unit": "mm", "limit": "Conforme componente testado"}]}];
+let state = {meta:{equipment:"Forwarder", date:new Date().toISOString().slice(0,10)}, answers:{}, compObs:{}, compPhotos:{}, active:0};
+const KEY = "checklist_padrao_brasil_v1";
+const metaIds = ["equipment","tag","model","hourmeter","date","inspector","location","inspectionType","criticality","finalCondition"];
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function idFor(comp,itemIndex){return comp.id+"__"+itemIndex;}
+function itemText(it){return typeof it==="string" ? it : (it.text || "");}
+function itemType(it){return typeof it==="string" ? "check" : (it.type || "check");}
+function itemUnit(it){return typeof it==="string" ? "" : (it.unit || "");}
+function itemLimit(it){return typeof it==="string" ? "" : (it.limit || "");}
+function itemRef(it){return typeof it==="string" ? "" : (it.ref || "");}
+function comps(){const eq=state.meta.equipment||"Forwarder";return CHECKLIST.filter(c=>!c.equipment||c.equipment===eq);}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw)state=JSON.parse(raw)}catch(e){} if(!state.meta)state.meta={}; if(!state.answers)state.answers={}; if(!state.compObs)state.compObs={}; if(!state.compPhotos)state.compPhotos={}; delete state.meta.operator; delete state.meta.shift; if(!state.meta.date)state.meta.date=new Date().toISOString().slice(0,10); if(!state.meta.equipment)state.meta.equipment="Forwarder";}
+function applyMeta(){metaIds.forEach(id=>{const el=document.getElementById(id); if(el) el.value=state.meta[id]??"";})}
+function collectMeta(){metaIds.forEach(id=>{const el=document.getElementById(id); if(el) state.meta[id]=el.value;})}
+function save(show=false){collectMeta();localStorage.setItem(KEY,JSON.stringify(state));update();if(show)toast("Checklist salvo no navegador.");}
+function toast(msg){const e=document.createElement("div");e.textContent=msg;e.style.cssText="position:fixed;right:18px;bottom:18px;background:#17212b;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 8px 22px #0004;z-index:99;font-weight:800";document.body.appendChild(e);setTimeout(()=>e.remove(),1700)}
+document.addEventListener("input",e=>{if(metaIds.includes(e.target.id)) save(false);});
+document.addEventListener("change",e=>{if(metaIds.includes(e.target.id)) save(false);});
+
+function renderTabs(){
+  const box=document.getElementById("tabs"); box.innerHTML="";
+  const mobile=document.getElementById("mobileCategory");
+  if(mobile) mobile.innerHTML="";
+  comps().forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="tab"+(i===state.active?" active":"")+(doneComp(c)?" done":"");
+    b.textContent=c.title;
+    b.onclick=()=>{state.active=i;rerender();scrollTo({top:0,behavior:"smooth"})};
+    box.appendChild(b);
+
+    if(mobile){
+      const opt=document.createElement("option");
+      opt.value=i;
+      opt.textContent=(doneComp(c)?"✓ ":"") + c.title;
+      opt.selected=i===state.active;
+      mobile.appendChild(opt);
+    }
+  });
+}
+
+function goMobileCategory(index){
+  state.active = Number(index) || 0;
+  rerender();
+  scrollTo({top:0,behavior:"smooth"});
+}
+function renderComponents(){
+  const box=document.getElementById("components"); box.innerHTML="";
+  const list=comps(); if(state.active>=list.length) state.active=0;
+  list.forEach((c,i)=>{
+    const sec=document.createElement("section");sec.className="panel comp "+(i===state.active?"active":"");
+    sec.innerHTML=`<div class="comp-head"><div><h2>${esc(c.title)}</h2><p>${esc(c.desc)}</p></div><div class="comp-score" id="score-${c.id}">0/${c.items.length}</div></div>
+      <div class="toolbar">
+        <button class="btn-ok" onclick="markComp('${c.id}','C')">Marcar componente como C</button>
+        <button class="btn-na" onclick="markComp('${c.id}','NA')">Marcar componente como NA</button>
+        <button class="btn-soft" onclick="clearComp('${c.id}')">Limpar componente</button>
+      </div>
+      <div id="items-${c.id}"></div>
+      <div class="comp-extra">
+        <div><label>Observação geral do componente</label><textarea oninput="setCompObs('${c.id}',this.value)" placeholder="Registre condição geral, tendência de falha, restrição de operação ou recomendação de manutenção.">${esc(state.compObs[c.id]||"")}</textarea></div>
+        <div><label>Foto geral do componente</label><div class="photo-box"><input type="file" accept="image/*" capture="environment" onchange="photoComp('${c.id}',this)"><div class="small">Anexe visão geral do conjunto analisado.</div><div class="photo-preview" id="phc-${c.id}"></div></div></div>
+      </div>
+      <div class="nav"><button class="btn-soft" onclick="prev()" ${i===0?"disabled":""}>Voltar</button><div><button class="btn-soft" onclick="save(true)">Salvar aba</button> <button class="btn-brand" onclick="next()">${i===list.length-1?"Finalizar / PDF":"Avançar"}</button></div></div>`;
+    box.appendChild(sec);
+    c.items.forEach((it,idx)=>document.getElementById("items-"+c.id).appendChild(renderItem(c,idx,it)));
+    renderCompPhoto(c.id);
+  });
+}
+function renderItem(c,idx,it){
+  const itemId=idFor(c,idx); const a=state.answers[itemId]||{};
+  const isMed = itemType(it)==="measurement";
+  const medHtml = isMed ? `<div class="measurement-box">
+      <div><label>Valor medido</label><input inputmode="decimal" value="${esc(a.value||"")}" placeholder="Ex.: 1,20" oninput="setMeasure('${itemId}','value',this.value)"></div>
+      <div><label>Unidade</label><input value="${esc(a.unit||itemUnit(it)||"")}" placeholder="mm, kPa, bar..." oninput="setMeasure('${itemId}','unit',this.value)"></div>
+      <div><label>Limite / referência</label><input value="${esc(a.limit||itemLimit(it)||"")}" placeholder="Conforme fabricante" oninput="setMeasure('${itemId}','limit',this.value)"></div>
+    </div>` : "";
+  const ref = itemRef(it) ? `<div class="small ref">Referência: ${esc(itemRef(it))}</div>` : "";
+  const div=document.createElement("div"); div.className="item "+(isMed?"measurement-item":"");
+  div.innerHTML=`<div><div class="item-title">${idx+1}. ${esc(itemText(it))} ${isMed?'<span class="med-tag">MEDIÇÃO</span>':''}</div>${ref}${medHtml}</div><div class="status">${["C","NC","NA"].map(s=>`<button class="pill ${a.status===s?"sel "+s:""}" onclick="setStatus('${itemId}','${s}')">${s}</button>`).join("")}</div>
+    <div class="detail ${a.status==="NC"?"show":""}" id="detail-${itemId}">
+      <div><label>Observação da NC</label><textarea oninput="setObs('${itemId}',this.value)" placeholder="Descreva localização, falha, severidade e ação recomendada.">${esc(a.obs||"")}</textarea></div>
+      <div><label>Foto da NC</label><div class="photo-box"><input type="file" accept="image/*" capture="environment" onchange="photoNC('${itemId}',this)"><div class="small">Esta imagem será anexada no PDF da NC.</div><div class="photo-preview" id="phi-${itemId}"></div></div></div>
+    </div>`;
+  setTimeout(()=>renderNCPhoto(itemId),0);
+  return div;
+}
+function setStatus(itemId,status){if(!state.answers[itemId])state.answers[itemId]={};state.answers[itemId].status=status;rerender();save(false)}
+function setObs(itemId,v){if(!state.answers[itemId])state.answers[itemId]={};state.answers[itemId].obs=v;save(false)}
+function setMeasure(itemId,field,value){if(!state.answers[itemId])state.answers[itemId]={};state.answers[itemId][field]=value;save(false)}
+function setCompObs(cid,v){state.compObs[cid]=v;save(false)}
+function markComp(cid,status){const c=comps().find(x=>x.id===cid); if(!c)return; c.items.forEach((_,idx)=>{const itemId=idFor(c,idx); if(!state.answers[itemId])state.answers[itemId]={}; state.answers[itemId].status=status;});rerender();save(false)}
+function clearComp(cid){const c=comps().find(x=>x.id===cid); if(!c)return; c.items.forEach((_,idx)=>delete state.answers[idFor(c,idx)]);rerender();save(false)}
+function fileToDataURL(file,maxW=1200,quality=.78){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,maxW/img.width);const canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL("image/jpeg",quality));};img.onerror=reject;img.src=e.target.result;};r.onerror=reject;r.readAsDataURL(file);})}
+async function photoComp(cid,input){const f=input.files&&input.files[0]; if(!f)return; state.compPhotos[cid]=await fileToDataURL(f); renderCompPhoto(cid); save(false)}
+async function photoNC(itemId,input){const f=input.files&&input.files[0]; if(!f)return; if(!state.answers[itemId])state.answers[itemId]={}; state.answers[itemId].photo=await fileToDataURL(f); renderNCPhoto(itemId); save(false)}
+function renderCompPhoto(cid){const box=document.getElementById("phc-"+cid); if(!box)return; box.innerHTML=state.compPhotos[cid]?`<img src="${state.compPhotos[cid]}"><button class="btn-danger" onclick="delete state.compPhotos['${cid}'];rerender();save(false)">Remover</button>`:"";}
+function renderNCPhoto(itemId){const box=document.getElementById("phi-"+itemId); if(!box)return; const ph=state.answers[itemId]?.photo; box.innerHTML=ph?`<img src="${ph}"><button class="btn-danger" onclick="delete state.answers['${itemId}'].photo;rerender();save(false)">Remover</button>`:"";}
+function stats(){
+  let total=0,done=0,C=0,NC=0,NA=0,P=0;
+  comps().forEach(c=>c.items.forEach((_,idx)=>{total++; const s=state.answers[idFor(c,idx)]?.status; if(s){done++; if(s==="C")C++; if(s==="NC")NC++; if(s==="NA")NA++;} else P++;}));
+  return {total,done,C,NC,NA,P,pct:total?Math.round(done/total*100):0};
+}
+function doneComp(c){return c.items.every((_,idx)=>state.answers[idFor(c,idx)]?.status)}
+function compStatus(c){let nc=0,p=0,cnt=0,na=0; c.items.forEach((_,idx)=>{const s=state.answers[idFor(c,idx)]?.status; if(s==="NC")nc++; else if(s==="C")cnt++; else if(s==="NA")na++; else p++;}); if(nc)return ["NC","NC: "+nc]; if(p)return ["PEND","Pendente"]; if(na===c.items.length)return ["NA","NA"]; return ["C","Conforme"];}
+function update(){
+  const s=stats(); document.getElementById("bar").style.width=s.pct+"%"; document.getElementById("pct").textContent=s.pct+"%";
+  document.getElementById("kDone").textContent=s.done+"/"+s.total; document.getElementById("kC").textContent=s.C; document.getElementById("kNC").textContent=s.NC; document.getElementById("kNA").textContent=s.NA; document.getElementById("kP").textContent=s.P;
+  comps().forEach(c=>{const el=document.getElementById("score-"+c.id); if(el){const d=c.items.filter((_,idx)=>state.answers[idFor(c,idx)]?.status).length; el.textContent=d+"/"+c.items.length;}});
+}
+function rerender(){collectMeta(); renderTabs(); renderComponents(); update(); localStorage.setItem(KEY,JSON.stringify(state));}
+function prev(){if(state.active>0){state.active--;rerender();scrollTo({top:0,behavior:"smooth"})}}
+function next(){const list=comps(); if(state.active<list.length-1){state.active++;rerender();scrollTo({top:0,behavior:"smooth"})}else{printPDF();}}
+function buildReport(){
+  collectMeta(); const s=stats(); const meta=[["Equipamento",state.meta.equipment],["TAG/Frota",state.meta.tag],["Modelo",state.meta.model],["Horímetro",state.meta.hourmeter],["Data",state.meta.date],["Inspetor",state.meta.inspector],["Frente",state.meta.location],["Tipo",state.meta.inspectionType],["Criticidade",state.meta.criticality],["Condição final",state.meta.finalCondition]];
+  const categoryList = comps();
+  const totalPages = categoryList.length + 2;
+  const checklistDate = state.meta.date || new Date().toISOString().slice(0,10);
+  const summaryRows = categoryList.map((c,idx)=>{
+    const [cls,label]=compStatus(c);
+    const page = idx + 3;
+    const total = c.items.length;
+    const nc = c.items.filter((_,i)=>(state.answers[idFor(c,i)]||{}).status==="NC").length;
+    return `<tr><td>${idx+1}</td><td>${esc(c.title)}</td><td>${total}</td><td><span class="badge ${cls}">${esc(label)}</span></td><td>${nc}</td><td>${page}</td></tr>`;
+  }).join("");
+
+  let html=`<div class="report-page report-cover" data-page="1" data-total="${totalPages}" data-date="${esc(checklistDate)}">
+    <h1>Relatório de Checklist Padrão - Máquinas Florestais</h1>
+    <p>Relatório técnico por componente, com conformidades, não conformidades, observações, medições e evidências fotográficas das NC.</p>
+    <div class="report-grid">${meta.map(x=>`<div class="report-chip"><b>${esc(x[0])}</b><br>${esc(x[1]||"-")}</div>`).join("")}</div>
+    <div class="report-grid"><div class="report-chip"><b>Conformes</b><br>${s.C}</div><div class="report-chip"><b>Não conformes</b><br>${s.NC}</div><div class="report-chip"><b>Não aplicáveis</b><br>${s.NA}</div><div class="report-chip"><b>Pendentes</b><br>${s.P}</div></div>
+    <div class="page-footer"><span>Data do checklist: ${esc(checklistDate)}</span><span>Página 1 de ${totalPages}</span></div>
+  </div>
+  <div class="report-page report-summary" data-page="2" data-total="${totalPages}" data-date="${esc(checklistDate)}">
+    <h2>Sumário</h2>
+    <p class="summary-subtitle">Relação das categorias do checklist e página inicial correspondente no relatório.</p>
+    <table class="summary-table">
+      <thead><tr><th>#</th><th>Categoria</th><th>Itens</th><th>Status</th><th>NC</th><th>Página</th></tr></thead>
+      <tbody>${summaryRows}</tbody>
+    </table>
+    <div class="page-footer"><span>Data do checklist: ${esc(checklistDate)}</span><span>Página 2 de ${totalPages}</span></div>
+  </div>`;
+  categoryList.forEach((c,compIdx)=>{
+    const [cls,label]=compStatus(c);
+    const compPhoto=state.compPhotos[c.id]?`<div class="report-imgs"><div><b>Foto geral do componente</b><br><img src="${state.compPhotos[c.id]}"></div></div>`:"";
+    const pageNum = compIdx + 3; html+=`<div class="report-page report-comp" data-page="${pageNum}" data-total="${totalPages}" data-date="${esc(checklistDate)}"><h3>${esc(c.title)} <span class="badge ${cls}">${esc(label)}</span></h3><div class="small">${esc(c.desc)}</div><p><b>Observação geral:</b> ${esc(state.compObs[c.id]||"-")}</p>${compPhoto}<table class="tbl"><thead><tr><th style="width:42%">Item verificado</th><th>Status</th><th>Observação / Foto da NC</th></tr></thead><tbody>`;
+    c.items.forEach((it,idx)=>{const itemId=idFor(c,idx); const a=state.answers[itemId]||{}; const st=a.status||"PEND"; const photo=(st==="NC"&&a.photo)?`<div class="nc-image-block"><div class="nc-image-title">Foto da NC deste item</div><img class="nc-img" src="${a.photo}" alt="Foto da não conformidade"></div>`:""; const isMed=itemType(it)==="measurement"; const measure=isMed?`<br><b>Medição:</b> ${esc(a.value||"-")} ${esc(a.unit||itemUnit(it)||"")}<br><b>Limite/ref.:</b> ${esc(a.limit||itemLimit(it)||"-")}`:""; html+=`<tr><td>${idx+1}. ${esc(itemText(it))}${isMed?'<br><span class="badge C">MEDIÇÃO</span>':''}</td><td><span class="badge ${st}">${st==="PEND"?"Pendente":st}</span></td><td>${esc(a.obs||"-")}${measure}${photo}</td></tr>`;});
+    html+=`</tbody></table><div class="page-footer"><span>Data do checklist: ${esc(checklistDate)}</span><span>Página ${pageNum} de ${totalPages}</span></div></div>`;
+  });
+  document.getElementById("report").innerHTML=html;
+}
+
+function getReportPrintStyles(){
+  return `
+    @page { size: A4 portrait; margin: 8mm; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #17212b;
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .report-cover {
+      min-height: 280mm;
+      background: linear-gradient(135deg,#0f5f43,#083d2b);
+      color: #fff;
+      padding: 16mm;
+      page-break-after: always;
+      break-after: page;
+    }
+    .report-cover h1 {
+      font-size: 22pt;
+      margin: 0 0 6mm 0;
+    }
+    .report-cover p {
+      font-size: 11pt;
+      margin: 0 0 8mm 0;
+    }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4mm;
+      margin-top: 5mm;
+    }
+    .report-chip {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 4mm;
+      padding: 3.5mm;
+      font-size: 9pt;
+      min-height: 15mm;
+    }
+    .report-comp {
+      page-break-before: always;
+      break-before: page;
+      page-break-after: always;
+      break-after: page;
+      min-height: 280mm;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      background: #fff;
+    }
+    .report-comp h3 {
+      margin: 0 0 3mm 0;
+      padding: 5mm;
+      background: #eef5f1;
+      border-left: 5mm solid #0f5f43;
+      font-size: 14pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4mm;
+    }
+    .small {
+      color: #667485;
+      font-size: 8.5pt;
+      margin: 0 0 3mm 0;
+      padding: 0 5mm;
+    }
+    .report-comp p {
+      font-size: 9pt;
+      margin: 0 0 3mm 0;
+      padding: 0 5mm;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 1.2mm 2.4mm;
+      font-size: 7pt;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.C { background: #e4f6ec; color: #1f8a4c; }
+    .badge.NC { background: #fdeceb; color: #c0392b; }
+    .badge.NA { background: #eef1f4; color: #7f8c8d; }
+    .badge.PEND { background: #fff3cd; color: #8a6400; }
+    .tbl {
+      width: calc(100% - 10mm);
+      margin: 0 5mm 16mm 5mm;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 7.7pt;
+    }
+    .tbl th,
+    .tbl td {
+      border: 1px solid #d7e0e7;
+      padding: 1.8mm;
+      vertical-align: top;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .tbl th {
+      background: #eef5f1;
+      text-align: left;
+      font-weight: 700;
+    }
+    .tbl th:nth-child(1), .tbl td:nth-child(1) { width: 43%; }
+    .tbl th:nth-child(2), .tbl td:nth-child(2) { width: 12%; text-align: center; }
+    .tbl th:nth-child(3), .tbl td:nth-child(3) { width: 45%; }
+    .report-imgs {
+      margin: 2mm 5mm 4mm 5mm;
+      display: block;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .report-imgs img {
+      width: 55mm;
+      max-width: 55mm;
+      max-height: 38mm;
+      object-fit: contain;
+      border: 1px solid #aeb9c2;
+      border-radius: 3mm;
+      display: block;
+      margin-top: 1mm;
+    }
+    .nc-image-block {
+      margin-top: 2mm;
+      padding: 2mm;
+      border: 1px solid #efc0bb;
+      border-radius: 3mm;
+      background: #fff7f6;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      display: block;
+    }
+    .nc-image-title {
+      font-weight: 700;
+      color: #c0392b;
+      margin-bottom: 1.5mm;
+      font-size: 8pt;
+    }
+    .nc-img {
+      display: block;
+      width: 58mm;
+      max-width: 100%;
+      max-height: 42mm;
+      object-fit: contain;
+      border: 1px solid #bfcbd3;
+      border-radius: 2.5mm;
+      background: #fff;
+    }
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .report-page {
+      position: relative;
+      width: 210mm;
+      min-height: 297mm;
+      padding-bottom: 14mm;
+      overflow: hidden;
+    }
+    .page-footer {
+      position: absolute;
+      left: 8mm;
+      right: 8mm;
+      bottom: 5mm;
+      border-top: 1px solid #cfd8df;
+      padding-top: 2mm;
+      display: flex;
+      justify-content: space-between;
+      gap: 8mm;
+      color: #667485;
+      font-size: 8pt;
+    }
+    .report-summary {
+      page-break-before: always;
+      break-before: page;
+      page-break-after: always;
+      break-after: page;
+      min-height: 280mm;
+      padding: 10mm;
+      background: #fff;
+    }
+    .report-summary h2 {
+      margin: 0 0 3mm 0;
+      padding: 0 0 3mm 0;
+      border-bottom: 2px solid #0f5f43;
+      font-size: 20pt;
+      color: #0f5f43;
+    }
+    .summary-subtitle {
+      color: #667485;
+      margin: 0 0 7mm 0;
+      font-size: 10pt;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 9pt;
+    }
+    .summary-table th,
+    .summary-table td {
+      border: 1px solid #d7e0e7;
+      padding: 2.4mm;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+    .summary-table th {
+      background: #eef5f1;
+      text-align: left;
+    }
+    .summary-table th:nth-child(1), .summary-table td:nth-child(1) { width: 9%; text-align: center; }
+    .summary-table th:nth-child(2), .summary-table td:nth-child(2) { width: 44%; }
+    .summary-table th:nth-child(3), .summary-table td:nth-child(3) { width: 12%; text-align: center; }
+    .summary-table th:nth-child(4), .summary-table td:nth-child(4) { width: 16%; text-align: center; }
+    .summary-table th:nth-child(5), .summary-table td:nth-child(5) { width: 9%; text-align: center; }
+    .summary-table th:nth-child(6), .summary-table td:nth-child(6) { width: 10%; text-align: center; font-weight: 700; }
+
+    .screen-file-name {
+      display: none;
+    }
+    @media screen {
+      body { background: #f4f7f9; padding: 12px; }
+      .screen-file-name {
+        display: block;
+        width: 210mm;
+        margin: 0 auto 12px auto;
+        padding: 10px 14px;
+        background: #eef5f1;
+        border: 1px solid #bfd8cb;
+        border-radius: 10px;
+        color: #0f5f43;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+      }
+      .report-cover, .report-summary, .report-comp {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 12px auto;
+        box-shadow: 0 6px 20px rgba(0,0,0,.12);
+      }
+    }
+  `;
+}
+
+function waitForImagesInDocument(doc){
+  const imgs = Array.from(doc.querySelectorAll("img"));
+  if(!imgs.length) return Promise.resolve();
+
+  return Promise.all(imgs.map(img => new Promise(resolve => {
+    if(img.complete && img.naturalWidth > 0) return resolve();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    setTimeout(resolve, 2000);
+  })));
+}
+
+
+function sanitizeFileNamePart(value){
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getSuggestedPdfName(){
+  collectMeta();
+  const tag = sanitizeFileNamePart(state.meta.tag) || sanitizeFileNamePart(state.meta.equipment) || "Checklist";
+  const date = sanitizeFileNamePart(state.meta.date) || new Date().toISOString().slice(0,10);
+  return `${tag} - ${date}`;
+}
+
+async function printPDF(){
+  buildReport();
+
+  const reportHTML = document.getElementById("report").innerHTML;
+  const suggestedName = getSuggestedPdfName();
+  const printWindow = window.open("", "_blank");
+
+  if(!printWindow){
+    alert("O navegador bloqueou a janela de impressão. Permita pop-ups para este arquivo e tente novamente.");
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>${suggestedName}</title>
+<style>${getReportPrintStyles()}</style>
+</head>
+<body>
+<div class="screen-file-name">Nome sugerido do PDF: <strong>${suggestedName}.pdf</strong></div>
+${reportHTML}
+<script>
+window.addEventListener('afterprint', () => {
+  setTimeout(() => window.close(), 300);
+});
+<\/script>
+</body>
+</html>`);
+  printWindow.document.close();
+
+  await new Promise(resolve => setTimeout(resolve, 350));
+  await waitForImagesInDocument(printWindow.document);
+  await new Promise(resolve => setTimeout(resolve, 350));
+
+  printWindow.focus();
+  printWindow.print();
+}
+function exportJSON(){save(false); download("checklist_padrao_brasil.json",JSON.stringify(state,null,2),"application/json")}
+function exportCSV(){collectMeta(); const rows=[["Componente","Item","Tipo","Status","Valor medido","Unidade","Limite/Referência","Observação","Tem foto NC","Observação componente","Tem foto componente"]]; comps().forEach(c=>c.items.forEach((it,idx)=>{const a=state.answers[idFor(c,idx)]||{}; rows.push([c.title,itemText(it),itemType(it),a.status||"",a.value||"",a.unit||itemUnit(it)||"",a.limit||itemLimit(it)||"",a.obs||"",a.photo?"Sim":"Não",state.compObs[c.id]||"",state.compPhotos[c.id]?"Sim":"Não"]);})); const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(";")).join("\n"); download("checklist_padrao_brasil.csv",csv,"text/csv;charset=utf-8")}
+function download(name,content,type){const blob=new Blob([content],{type}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href)}
+function resetAll(){if(confirm("Limpar todos os preenchimentos salvos neste navegador?")){localStorage.removeItem(KEY); state={meta:{equipment:"Forwarder",date:new Date().toISOString().slice(0,10)},answers:{},compObs:{},compPhotos:{},active:0}; applyMeta(); rerender();}}
+load(); applyMeta(); rerender();
+</script>
+</body>
+</html>
